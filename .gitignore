@@ -1,0 +1,18 @@
+# general things to ignore
+build/
+dist/
+venv/
+*.egg-info/
+*.egg
+*.py[cod]
+__pycache__/
+*.so
+*~
+.env
+
+# due to using tox and pytest
+.tox
+.cache
+
+# exclude output directory
+output/

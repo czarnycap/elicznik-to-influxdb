@@ -44,12 +44,18 @@ def read_files_from_input_folder():
                     if len(row) < 2:
                         continue
                     timestamp = row[0]
-                    timestamp = datetime.strptime(row[0], '%Y-%m-%dT%H:%M:%S')
+                    try:
+                        timestamp = datetime.strptime(row[0], '%Y-%m-%dT%H:%M:%S')
+                        value = float(row[1])
+                    except Exception as e:
+                        print(f"Skipping row due to error: {e}")
+                        continue
+
                     data_point = {
                         "measurement": "energy_usage",
-                        "time": timestamp,
+                        "time": timestamp.isoformat(),
                         "fields": {
-                            "value": row[1]
+                            "value": value
                         }
                     }
                     yield data_point

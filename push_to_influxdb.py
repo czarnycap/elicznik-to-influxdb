@@ -2,7 +2,7 @@ import os
 import json
 from influxdb import InfluxDBClient
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import argparse
 from dotenv import load_dotenv  
 
@@ -87,23 +87,45 @@ def test_influxdb_connection():
         print(f"Failed to connect to InfluxDB: {e}")
 
 def fetch_data_from_influxdb(start_date, end_date):
-        client = InfluxDBClient(
-            host=INFLUXDB_HOST,
-            port=INFLUXDB_PORT,
-            username=INFLUXDB_USER,
-            password=INFLUXDB_PASSWORD,
-            database=INFLUXDB_DATABASE
-        )
-        query = f"SELECT * FROM energy_usage WHERE time >= '{start_date}' AND time <= '{end_date}'"
-        try:
-            result = client.query(query)
-            points = list(result.get_points())
-            for point in points:
-                print(point)
-        except Exception as e:
-            print(f"Failed to fetch data from InfluxDB: {e}")
-        finally:
-            client.close()
+    """
+    Fetches data from InfluxDB between start_date and end_date.
+    Accepts dates in 'YYYY-MM-DD' format and converts them to RFC3339.
+    """
+    # If only date is provided, convert to full RFC3339 timestamps
+    try:
+        if len(start_date) == 10 and len(end_date) == 10:
+            # Parse as date, add time and Z
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1) - timedelta(seconds=1)
+            start_date = start_dt.strftime('%Y-%m-%dT00:00:00Z')
+            end_date = end_dt.strftime('%Y-%m-%dT23:59:59Z')
+        elif len(start_date) == 19 and len(end_date) == 19:
+            # If time is provided but no Z, add Z
+            if not start_date.endswith('Z'):
+                start_date += 'Z'
+            if not end_date.endswith('Z'):
+                end_date += 'Z'
+    except Exception as e:
+        print(f"Invalid date format: {e}")
+        return
+
+    client = InfluxDBClient(
+        host=INFLUXDB_HOST,
+        port=INFLUXDB_PORT,
+        username=INFLUXDB_USER,
+        password=INFLUXDB_PASSWORD,
+        database=INFLUXDB_DATABASE
+    )
+    query = f"SELECT * FROM energy_usage WHERE time >= '{start_date}' AND time <= '{end_date}'"
+    try:
+        result = client.query(query)
+        points = list(result.get_points())
+        for point in points:
+            print(point)
+    except Exception as e:
+        print(f"Failed to fetch data from InfluxDB: {e}")
+    finally:
+        client.close()
 
 # Directory containing the output files
 OUTPUT_DIR = '/home/czarnycap/5tb/repos/elicznik/output'

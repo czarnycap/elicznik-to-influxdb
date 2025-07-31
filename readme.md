@@ -72,16 +72,22 @@ python push_to_influxdb.py --push-data
 
 ### Fetch Data from InfluxDB
 
+You can now use **date-only format** for fetching data:
+
 ```bash
-python push_to_influxdb.py --fetch-data <start_date> <end_date>
+python push_to_influxdb.py --fetch-data 2024-12-31 2025-01-01
 ```
-Example:
+This will fetch all data from `2024-12-31T00:00:00Z` to `2025-01-01T23:59:59Z`.
+
+You can also use full RFC3339 timestamps if needed:
 ```bash
-python push_to_influxdb.py --fetch-data 2024-12-31T00:00:00 2024-12-31T23:59:59
+python push_to_influxdb.py --fetch-data 2024-12-31T00:00:00Z 2024-12-31T23:59:59Z
 ```
 
 ## Notes
 
 - The script expects the first column in each `.dat` file to be a timestamp (`YYYY-MM-DDTHH:MM:SS`), and the second column to be a float value.
 - Only the first two columns are used; others are ignored.
-- Data is written to the `energy_usage` measurement in
+- Data is written to the `energy_usage` measurement in InfluxDB.
+
+## License
